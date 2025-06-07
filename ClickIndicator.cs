@@ -3,10 +3,11 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(TMP_Text))]
+
 public class ClickIndicator : MonoBehaviour
 {
-    private const string InputHandlerMissingErrorMessage = "InputHandler не найден на сцене!";
-    private const string TextComponentMissingErrorMessage = "Компонент TMP_Text отсутствует!";
+    private const string InputHandlerMissingErrorMessage = "InputHandler Г­ГҐ Г­Г Г©Г¤ГҐГ­ Г­Г  Г±Г¶ГҐГ­ГҐ!";
+    private const string TextComponentMissingErrorMessage = "ГЉГ®Г¬ГЇГ®Г­ГҐГ­ГІ TMP_Text Г®ГІГ±ГіГІГ±ГІГўГіГҐГІ!";
 
     [Header("Animation Settings")]
     [SerializeField] private float _displayDurationInSeconds = 0.3f;
