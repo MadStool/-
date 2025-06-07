@@ -17,7 +17,7 @@ public class CounterLogic : MonoBehaviour
 
         if (_inputHandler == null)
         {
-            Debug.LogError("InputHandler νε νΰιδεν νΰ ρφενε!");
+            Debug.LogError("InputHandler Π½Πµ Π½Π°ΠΉΠ΄ΠµΠ½ Π½Π° ΡΡ†ΠµΠ½Πµ!");
             enabled = false;
             return;
         }
