@@ -17,7 +17,7 @@ public class CounterDisplay : MonoBehaviour
         _inputHandler = FindAnyObjectByType<InputHandler>();
 
         if (_counterText == null)
-            Debug.LogError("CounterText не назначен!", this);
+            Debug.LogError("CounterText РЅРµ РЅР°Р·РЅР°С‡РµРЅ!"", this);
     }
 
     private void OnEnable()
@@ -41,7 +41,7 @@ public class CounterDisplay : MonoBehaviour
     private void UpdateCounter(int count)
     {
         if (_counterText != null)
-            _counterText.text = $"Счётчик: {count}";
+            _counterText.text = $"РЎС‡С‘С‚С‡РёРє: {count}";
     }
 
     private void ShowClick()
