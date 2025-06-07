@@ -6,8 +6,8 @@ using System.Collections;
 
 public class ClickIndicator : MonoBehaviour
 {
-    private const string InputHandlerMissingErrorMessage = "InputHandler íå íàéäåí íà ñöåíå!";
-    private const string TextComponentMissingErrorMessage = "Êîìïîíåíò TMP_Text îòñóòñòâóåò!";
+    private const string InputHandlerMissingErrorMessage = "InputHandler не найден на сцене!";
+    private const string TextComponentMissingErrorMessage = "Компонент TMP_Text отсутствует!";
 
     [Header("Animation Settings")]
     [SerializeField] private float _displayDurationInSeconds = 0.3f;
