@@ -3,43 +3,34 @@ using System.Collections;
 
 public class CounterLogic : MonoBehaviour
 {
-    public event System.Action<int> OnCountChanged;
+    [Header("зависимости")]
+    [SerializeField] private InputHandler _inputHandler;
 
-    [SerializeField] private float _countInterval = 0.5f;
-    private int _currentCount = 0;
-    private bool _isCounting = false;
-    private Coroutine _countingCoroutine;
-    private InputHandler _inputHandler;
+    [Header("Настройки")]
+    [SerializeField] private float _interval = 0.5f;
 
-    private void Awake()
+    public event System.Action<int> CountChanged;
+    public event System.Action CountingStarted;
+    public event System.Action CountingStopped;
+
+    private int _currentValue = 0;
+    private bool _isActive = false;
+    private Coroutine _countingRoutine;
+
+    private void OnValidate()
     {
-        _inputHandler = FindAnyObjectByType<InputHandler>();
-
-        if (_inputHandler == null)
-        {
-            Debug.LogError("InputHandler не найден на сцене!");
-            enabled = false;
-            return;
-        }
+        Debug.Assert(_inputHandler != null, "InputHandler не назначен!", this);
     }
 
-    private void OnEnable()
-    {
-        if (_inputHandler != null)
-            _inputHandler.OnClick += ToggleCounting;
-    }
+    private void OnEnable() => _inputHandler.Clicked += Toggle;
 
-    private void OnDisable()
-    {
-        if (_inputHandler != null)
-            _inputHandler.OnClick -= ToggleCounting;
-    }
+    private void OnDisable() => _inputHandler.Clicked -= Toggle;
 
-    private void ToggleCounting()
+    private void Toggle()
     {
-        _isCounting = _isCounting == false;
+        _isActive = _isActive == false;
 
-        if (_isCounting)
+        if (_isActive)
             StartCounting();
         else
             StopCounting();
@@ -47,35 +38,35 @@ public class CounterLogic : MonoBehaviour
 
     private void StartCounting()
     {
-        if (_countingCoroutine != null)
-            StopCoroutine(_countingCoroutine);
-
-        _countingCoroutine = StartCoroutine(CountingRoutine());
+        StopCounting();
+        CountingStarted?.Invoke();
+        _countingRoutine = StartCoroutine(CountingRoutine());
     }
 
     private void StopCounting()
     {
-        if (_countingCoroutine != null)
+        if (_countingRoutine != null)
         {
-            StopCoroutine(_countingCoroutine);
-            _countingCoroutine = null;
+            StopCoroutine(_countingRoutine);
+            _countingRoutine = null;
+            CountingStopped?.Invoke();
         }
     }
 
     private IEnumerator CountingRoutine()
     {
-        var wait = new WaitForSeconds(_countInterval);
+        var wait = new WaitForSeconds(_interval);
 
-        while (_isCounting)
+        while (_isActive)
         {
             yield return wait;
-            IncrementCounter();
+            Increase();
         }
     }
 
-    private void IncrementCounter()
+    private void Increase()
     {
-        _currentCount++;
-        OnCountChanged?.Invoke(_currentCount);
+        _currentValue++;
+        CountChanged?.Invoke(_currentValue);
     }
 }
