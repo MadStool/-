@@ -3,131 +3,101 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(TMP_Text))]
-
 public class ClickIndicator : MonoBehaviour
 {
-    private const string InputHandlerMissingErrorMessage = "InputHandler не найден на сцене!";
-    private const string TextComponentMissingErrorMessage = "Компонент TMP_Text отсутствует!";
+    [Header("зависимости")]
+    [SerializeField] private InputHandler _inputHandler;
 
-    [Header("Animation Settings")]
-    [SerializeField] private float _displayDurationInSeconds = 0.3f;
-    [SerializeField] private float _fadeAnimationDurationInSeconds = 0.1f;
-    [SerializeField] private float _fullyVisibleAlpha = 1f;
-    [SerializeField] private float _fullyTransparentAlpha = 0f;
+    [Header("настройка анимации")]
+    [SerializeField] private float _displayDuration = 0.3f;
+    [SerializeField] private float _fadeDuration = 0.1f;
+    [SerializeField] private float _maxAlpha = 1f;
+    [SerializeField] private float _minAlpha = 0f;
 
-    private TMP_Text _clickIndicatorText;
-    private InputHandler _inputHandler;
-    private Coroutine _currentFadeAnimationCoroutine;
-    private Color _originalTextColor;
+    public event System.Action ClickShowed;
+
+    private TMP_Text _text;
+    private Coroutine _fadeCoroutine;
+    private Color _originalColor;
+
+    private void OnValidate()
+    {
+        Debug.Assert(_inputHandler != null, "InputHandler не назначен!", this);
+        GetTextComponent();
+    }
 
     private void Awake()
     {
-        InitializeComponents();
-        CacheOriginalTextColor();
-        ValidateDependencies();
+        GetTextComponent();
+        CacheOriginalColor();
     }
 
-    private void InitializeComponents()
+    private void OnEnable() => _inputHandler.Clicked += HandleClick;
+
+    private void OnDisable() => _inputHandler.Clicked -= HandleClick;
+
+    private void GetTextComponent()
     {
-        _clickIndicatorText = GetComponent<TMP_Text>();
-        _inputHandler = FindAnyObjectByType<InputHandler>();
+        _text = GetComponent<TMP_Text>();
+        Debug.Assert(_text != null, "TMP_Text component не нацден!", this);
     }
 
-    private void CacheOriginalTextColor()
+    private void CacheOriginalColor()
     {
-        if (_clickIndicatorText != null)
-            _originalTextColor = _clickIndicatorText.color;
+        if (_text != null)
+            _originalColor = _text.color;
     }
 
-    private void ValidateDependencies()
+    private void HandleClick()
     {
-        if (_inputHandler == null)
-        {
-            Debug.LogError(InputHandlerMissingErrorMessage, this);
-            enabled = false;
-            return;
-        }
-
-        if (_clickIndicatorText == null)
-        {
-            Debug.LogError(TextComponentMissingErrorMessage, this);
-            enabled = false;
-        }
+        UpdatePosition();
+        RestartFade();
     }
 
-    private void OnEnable()
+    private void UpdatePosition() => _text.transform.position = Input.mousePosition;
+
+    private void RestartFade()
     {
-        if (_inputHandler != null)
-            _inputHandler.OnClick += HandleClickInput;
+        if (_fadeCoroutine != null)
+            StopCoroutine(_fadeCoroutine);
+
+        _fadeCoroutine = StartCoroutine(FadeAnimation());
     }
 
-    private void OnDisable()
+    private IEnumerator FadeAnimation()
     {
-        if (_inputHandler != null)
-            _inputHandler.OnClick -= HandleClickInput;
-    }
-
-    private void HandleClickInput()
-    {
-        UpdateIndicatorPosition();
-        RestartFadeAnimation();
-    }
-
-    private void UpdateIndicatorPosition() => _clickIndicatorText.transform.position = Input.mousePosition;
-
-    private void RestartFadeAnimation()
-    {
-        if (_currentFadeAnimationCoroutine != null)
-            StopCoroutine(_currentFadeAnimationCoroutine);
-
-        _currentFadeAnimationCoroutine = StartCoroutine(PlayFadeAnimation());
-    }
-
-    private IEnumerator PlayFadeAnimation()
-    {
-        ShowTextWithOriginalColor();
-        yield return WaitForDisplayDuration();
-        yield return FadeOutText();
+        ShowText();
+        yield return new WaitForSeconds(_displayDuration);
+        yield return FadeOut();
         HideText();
-        ResetAnimationCoroutine();
+        _fadeCoroutine = null;
     }
 
-    private void ShowTextWithOriginalColor()
+    private void ShowText()
     {
-        _clickIndicatorText.gameObject.SetActive(true);
-        _clickIndicatorText.color = _originalTextColor;
+        _text.gameObject.SetActive(true);
+        _text.color = _originalColor;
+        ClickShowed?.Invoke();
     }
 
-    private WaitForSeconds WaitForDisplayDuration()
+    private IEnumerator FadeOut()
     {
-        return new WaitForSeconds(_displayDurationInSeconds);
-    }
+        float elapsed = 0f;
 
-    private IEnumerator FadeOutText()
-    {
-        float elapsedTime = 0f;
-
-        while (elapsedTime < _fadeAnimationDurationInSeconds)
+        while (elapsed < _fadeDuration)
         {
-            elapsedTime += Time.deltaTime;
-            UpdateTextAlpha(elapsedTime);
+            elapsed += Time.deltaTime;
+            UpdateAlpha(elapsed);
             yield return null;
         }
     }
 
-    private void UpdateTextAlpha(float elapsedTime)
+    private void UpdateAlpha(float elapsed)
     {
-        float progress = elapsedTime / _fadeAnimationDurationInSeconds;
-        float currentAlpha = Mathf.Lerp(_fullyVisibleAlpha, _fullyTransparentAlpha, progress);
-        _clickIndicatorText.color = new Color(
-            _originalTextColor.r,
-            _originalTextColor.g,
-            _originalTextColor.b,
-            currentAlpha
-        );
+        float progress = elapsed / _fadeDuration;
+        float alpha = Mathf.Lerp(_maxAlpha, _minAlpha, progress);
+        _text.color = new Color(_originalColor.r, _originalColor.g, _originalColor.b, alpha);
     }
 
-    private void HideText() => _clickIndicatorText.gameObject.SetActive(false);
-
-    private void ResetAnimationCoroutine() => _currentFadeAnimationCoroutine = null;
+    private void HideText() => _text.gameObject.SetActive(false);
 }
