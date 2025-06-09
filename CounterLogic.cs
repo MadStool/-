@@ -22,7 +22,11 @@ public class CounterLogic : MonoBehaviour
         Debug.Assert(_inputHandler != null, "InputHandler не назначен!", this);
     }
 
-    private void OnEnable() => _inputHandler.Clicked += Toggle;
+    private void OnEnable()
+    {
+        if (_inputHandler != null)
+            _inputHandler.Clicked += Toggle;
+    }
 
     private void OnDisable() => _inputHandler.Clicked -= Toggle;
 
