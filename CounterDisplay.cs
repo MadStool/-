@@ -3,64 +3,60 @@ using UnityEngine;
 
 public class CounterDisplay : MonoBehaviour
 {
-    [SerializeField] private TMP_Text _counterText;
-    [SerializeField] private TMP_Text _clickText;
-    [SerializeField] private float _clickDisplayTime = 0.3f;
+    [Header("зависимости")]
+    [SerializeField] private CounterLogic _counter;
+    [SerializeField] private InputHandler _inputHandler;
 
-    private CounterLogic _counterLogic;
-    private InputHandler _inputHandler;
+    [Header("UI элементы")]
+    [SerializeField] private TMP_Text _valueText;
+    [SerializeField] private TMP_Text _clickText;
+
+    [Header("настройки")]
+    [SerializeField] private float _clickShowTime = 0.3f;
+    [SerializeField] private Color _clickColor = Color.white;
+
     private bool _isClickVisible;
 
-    private void Awake()
+    private void OnValidate()
     {
-        _counterLogic = FindAnyObjectByType<CounterLogic>();
-        _inputHandler = FindAnyObjectByType<InputHandler>();
-
-        if (_counterText == null)
-            Debug.LogError("CounterText не назначен!"", this);
+        Debug.Assert(_counter != null, "Counter не назначен!", this);
+        Debug.Assert(_inputHandler != null, "InputHandler не назначен!", this);
+        Debug.Assert(_valueText != null, "ValueText не назначен!", this);
+        Debug.Assert(_clickText != null, "ClickText не назначен!", this);
     }
 
     private void OnEnable()
     {
-        if (_counterLogic != null)
-            _counterLogic.OnCountChanged += UpdateCounter;
-
-        if (_inputHandler != null)
-            _inputHandler.OnClick += ShowClick;
+        _counter.CountChanged += UpdateValue;
+        _inputHandler.Clicked += ShowClick;
     }
 
     private void OnDisable()
     {
-        if (_counterLogic != null)
-            _counterLogic.OnCountChanged -= UpdateCounter;
-
-        if (_inputHandler != null)
-            _inputHandler.OnClick -= ShowClick;
+        _counter.CountChanged -= UpdateValue;
+        _inputHandler.Clicked -= ShowClick;
     }
 
-    private void UpdateCounter(int count)
+    private void UpdateValue(int value)
     {
-        if (_counterText != null)
-            _counterText.text = $"Счётчик: {count}";
+        _valueText.text = $"Длина: {value}";
     }
 
     private void ShowClick()
     {
-        if (_clickText == null || _isClickVisible)
-            return;
+        if (_isClickVisible) return;
 
         _isClickVisible = true;
         _clickText.gameObject.SetActive(true);
         _clickText.transform.position = Input.mousePosition;
-        Invoke(nameof(HideClick), _clickDisplayTime);
+        _clickText.color = _clickColor;
+
+        Invoke(nameof(HideClick), _clickShowTime);
     }
 
     private void HideClick()
     {
-        if (_clickText != null)
-        {
-            _clickText.gameObject.SetActive(false);
-            _isClickVisible = false;
-        }
+        _clickText.gameObject.SetActive(false);
+        _isClickVisible = false;
     }
 }
