@@ -27,8 +27,11 @@ public class CounterDisplay : MonoBehaviour
 
     private void OnEnable()
     {
-        _counter.CountChanged += UpdateValue;
-        _inputHandler.Clicked += ShowClick;
+        if (_counter != null && _inputHandler != null)
+        {
+            _counter.CountChanged += UpdateValue;
+            _inputHandler.Clicked += ShowClick;
+        }
     }
 
     private void OnDisable()
@@ -39,7 +42,7 @@ public class CounterDisplay : MonoBehaviour
 
     private void UpdateValue(int value)
     {
-        _valueText.text = $"Длина: {value}";
+        _valueText.text = $"Счётчик: {value}";
     }
 
     private void ShowClick()
